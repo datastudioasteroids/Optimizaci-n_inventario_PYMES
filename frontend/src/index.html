@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard Interactivo de Ventas</title>
+
+  <!-- CARGA DEL CSS DEL DASHBOARD -->
+  <link rel="stylesheet" href="/static/css/dashboard.css" />
+
+  <!-- CARGA DE Chart.js DESDE CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <!-- HEADER -->
+  <header>
+    <div class="header-left">
+      <img src="https://img.icons8.com/bubbles/50/ffffff/sales-performance.png" alt="Ícono Ventas" />
+      <h1>Dashboard Interactivo de Ventas</h1>
+    </div>
+  </header>
+
+  <!-- CONTENEDOR PRINCIPAL -->
+  <main>
+    <!-- 1. FILA DE KPIs -->
+    <section class="kpi-row">
+      <div class="kpi-card">
+        <div class="kpi-title">Ventas Totales</div>
+        <div class="kpi-value" id="kpi-total-sales">--</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-title">Utilidad Promedio</div>
+        <div class="kpi-value" id="kpi-avg-profit">--</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-title">Cantidad de Ventas</div>
+        <div class="kpi-value" id="kpi-sale-count">--</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-title">Ventas Promedio</div>
+        <div class="kpi-value" id="kpi-avg-sales">--</div>
+      </div>
+    </section>
+
+    <!-- 2. FILA DE SELECTORES -->
+    <section class="filter-row">
+      <div class="filter-item">
+        <label for="month-range">Mes:</label>
+        <input type="month" id="month-range" />
+      </div>
+      <div class="filter-item">
+        <label for="vendor-select">Cliente (Customer Name):</label>
+        <select id="vendor-select">
+          <option value="Todos">Todos</option>
+        </select>
+      </div>
+      <div class="filter-item">
+        <label for="product-select">Producto (Product Name):</label>
+        <select id="product-select">
+          <option value="Todos">Todos</option>
+        </select>
+      </div>
+      <div class="filter-item">
+        <label for="group-by">Agrupar por:</label>
+        <select id="group-by">
+          <option value="Region">Region</option>
+          <option value="State">State</option>
+          <option value="Postal Code">Postal Code</option>
+          <option value="Product ID">Product ID</option>
+          <option value="Category">Category</option>
+          <option value="Sub-Category">Sub-Category</option>
+          <option value="Product Name">Product Name</option>
+          <option value="Customer Name">Customer Name</option>
+        </select>
+      </div>
+    </section>
+
+    <!-- 3. GRÁFICO DE LÍNEAS -->
+    <section class="chart-section">
+      <h2>Ventas 2020 por Cliente (ejemplo)</h2>
+      <canvas id="line-chart"></canvas>
+    </section>
+
+    <!-- 4. GRÁFICOS INFERIORES -->
+    <section class="bottom-charts">
+      <div class="chart-card">
+        <h3>Ventas Totales Agrupadas</h3>
+        <canvas id="bar-chart"></canvas>
+      </div>
+      <div class="chart-card">
+        <h3>Utilidad vs Ingresos por Producto (ejemplo)</h3>
+        <canvas id="scatter-chart"></canvas>
+      </div>
+    </section>
+
+    <!-- 5. FORMULARIO DE PREDICCIÓN -->
+    <section class="kpi-row" style="margin-top: 2rem;">
+      <div class="kpi-card" style="grid-column: 1 / -1;">
+        <h2 style="color: #fff; margin-bottom: 1rem;">Predicción de Ventas (fila única)</h2>
+        <form id="predict-form" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem;">
+          <div>
+            <label for="pred-region">🌍 Region</label>
+            <input type="text" id="pred-region" placeholder="Ej. West" />
+          </div>
+          <div>
+            <label for="pred-productid">🔢 Product ID</label>
+            <input type="text" id="pred-productid" placeholder="Ej. P-1001" />
+          </div>
+          <div>
+            <label for="pred-category">🛍 Category</label>
+            <input type="text" id="pred-category" placeholder="Ej. Technology" />
+          </div>
+          <div>
+            <label for="pred-subcategory">🗂 Sub-Category</label>
+            <input type="text" id="pred-subcategory" placeholder="Ej. Phones" />
+          </div>
+          <div>
+            <label for="pred-product">🏷 Product Name</label>
+            <input type="text" id="pred-product" placeholder="Ej. iPhone 12" />
+          </div>
+          <div>
+            <label for="pred-quantity">📦 Quantity</label>
+            <input type="number" id="pred-quantity" placeholder="Ej. 2" />
+          </div>
+          <div>
+            <label for="pred-discount">🎟 Discount</label>
+            <input type="number" id="pred-discount" step="0.01" min="0" max="1" placeholder="Ej. 0.1" />
+          </div>
+          <div>
+            <label for="pred-profit">💸 Profit</label>
+            <input type="number" id="pred-profit" step="0.01" placeholder="Ej. 200.00" />
+          </div>
+          <div style="align-self: end;">
+            <button type="submit" class="kpi-card" style="background-color: #198754; color: #fff; cursor: pointer; border: none; border-radius: 8px; padding: 0.8rem;">
+              🔮 Predecir
+            </button>
+          </div>
+          <div id="prediction-result" style="font-size: 1.2rem; font-weight: bold; color: #fff; align-self: end;"></div>
+        </form>
+      </div>
+    </section>
+  </main>
+
+  <!-- CARGA DEL JS DEL DASHBOARD -->
+  <script src="/static/js/dashboard.js"></script>
+</body>
+</html>
