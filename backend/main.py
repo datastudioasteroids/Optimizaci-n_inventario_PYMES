@@ -80,6 +80,10 @@ def metrics_xgb_endpoint():
 # -------------------------------------------------------
 @app.post("/predict_csv")
 def predict_csv(file: UploadFile = File(...)):
+    """
+    Recibe un archivo CSV, lo lee en un DataFrame y retorna las predicciones 
+    calculadas por predict_from_dataframe().
+    """
     try:
         contents = file.file.read()
         df = pd.read_csv(io.BytesIO(contents), encoding="latin1")
@@ -131,10 +135,14 @@ def get_kpis(
       - avg_sales: promedio de 'Sales'
     Aplica filtros opcionales: month, vendor, product.
     """
+    # 1) Leer CSV principal
     df = pd.read_csv(str(CSV1), encoding="latin1")
+
+    # 2) Convertir 'Order Date' a datetime si existe
     if "Order Date" in df.columns:
         df["Order Date"] = pd.to_datetime(df["Order Date"], errors="coerce")
 
+    # 3) Aplicar filtros
     if month:
         df = df[df["Order Date"].dt.to_period("M") == pd.Period(month, freq="M")]
     if vendor and vendor != "Todos":
@@ -142,15 +150,16 @@ def get_kpis(
     if product and product != "Todos":
         df = df[df["Product Name"] == product]
 
+    # 4) Verificar columnas necesarias
     required_cols = ["Sales", "Profit"]
     for col in required_cols:
         if col not in df.columns:
             raise HTTPException(status_code=500, detail=f"Columna '{col}' no encontrada para calcular KPIs.")
 
-    total_sales   = df["Sales"].sum()
+    total_sales    = df["Sales"].sum()
     avg_profit_pct = (df["Profit"] / df["Sales"]).mean() if total_sales != 0 else 0
-    sale_count    = df.shape[0]
-    avg_sales     = df["Sales"].mean() if sale_count > 0 else 0
+    sale_count     = df.shape[0]
+    avg_sales      = df["Sales"].mean() if sale_count > 0 else 0
 
     return {
         "total_sales": float(total_sales),
@@ -280,3 +289,4 @@ def sales_trend(
         })
 
     return response
+
