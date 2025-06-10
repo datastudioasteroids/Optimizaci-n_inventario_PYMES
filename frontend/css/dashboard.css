@@ -203,3 +203,75 @@ body {
   color: #000;
   background-color: #fff;
 }
+
+/* ===========================
+   SECCIÓN DE PREDICCIÓN
+   =========================== */
+.prediction-section {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  padding: 1.5rem;
+  backdrop-filter: blur(6px);
+  margin-top: 2rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.prediction-card h2 {
+  font-size: 1.3rem;
+  color: #fff;
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.form-row {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 1rem;
+}
+
+.form-row label {
+  color: #ddd;
+  margin-bottom: 0.3rem;
+  font-size: 0.95rem;
+}
+
+.form-row select,
+.form-row input {
+  background: rgba(255, 255, 255, 0.08);
+  border: none;
+  border-radius: 8px;
+  color: #fff;
+  padding: 0.5rem;
+  font-size: 0.95rem;
+}
+
+.form-row select:focus,
+.form-row input:focus {
+  outline: 2px solid #5a00d0;
+}
+
+.btn-green {
+  background-color: #28a745;
+  color: #fff;
+  padding: 0.7rem 1.2rem;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 1rem;
+  margin-top: 0.5rem;
+  width: 100%;
+  font-weight: bold;
+}
+
+.btn-green:hover {
+  background-color: #218838;
+}
+
+.prediction-result {
+  margin-top: 1rem;
+  color: #fff;
+  font-size: 1.1rem;
+  text-align: center;
+}

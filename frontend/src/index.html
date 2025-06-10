@@ -6,24 +6,37 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Dashboard Interactivo de Ventas</title>
 
-  <!-- CARGA DEL CSS DEL DASHBOARD -->
+  <!-- --------------------------------------------
+       CARGA DEL CSS DEL DASHBOARD (glassmorphism)
+       -------------------------------------------- -->
   <link rel="stylesheet" href="/static/css/dashboard.css" />
 
-  <!-- CARGA DE Chart.js DESDE CDN -->
+  <!-- --------------------------------------------
+       CARGA DE Chart.js DESDE CDN
+       -------------------------------------------- -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
-  <!-- HEADER -->
+  <!-- ======================
+       HEADER PRINCIPAL
+       ====================== -->
   <header>
     <div class="header-left">
-      <img src="https://img.icons8.com/bubbles/50/ffffff/sales-performance.png" alt="Ícono Ventas" />
+      <img
+        src="https://img.icons8.com/bubbles/50/ffffff/sales-performance.png"
+        alt="Ícono Ventas"
+      />
       <h1>Dashboard Interactivo de Ventas</h1>
     </div>
   </header>
 
-  <!-- CONTENEDOR PRINCIPAL -->
+  <!-- ======================
+       CONTENEDOR PRINCIPAL
+       ====================== -->
   <main>
-    <!-- 1. FILA DE KPIs -->
+    <!-- --------------------------------------------
+         1. FILA DE KPIs (Ventas Totales, Utilidad, etc.)
+         -------------------------------------------- -->
     <section class="kpi-row">
       <div class="kpi-card">
         <div class="kpi-title">Ventas Totales</div>
@@ -43,106 +56,179 @@
       </div>
     </section>
 
-    <!-- 2. FILA DE SELECTORES -->
+    <!-- --------------------------------------------
+         2. FILA DE SELECTORES (Mes, Cliente, Producto, Agrupar por)
+         -------------------------------------------- -->
     <section class="filter-row">
+      <!-- Selector de Mes -->
       <div class="filter-item">
         <label for="month-range">Mes:</label>
         <input type="month" id="month-range" />
       </div>
+
+      <!-- Selector de Cliente -->
       <div class="filter-item">
         <label for="vendor-select">Cliente (Customer Name):</label>
         <select id="vendor-select">
           <option value="Todos">Todos</option>
+          <!-- Se poblará por JS -->
         </select>
       </div>
+
+      <!-- Selector de Producto -->
       <div class="filter-item">
         <label for="product-select">Producto (Product Name):</label>
         <select id="product-select">
           <option value="Todos">Todos</option>
+          <!-- Se poblará por JS -->
         </select>
       </div>
+
+      <!-- Selector de “Agrupar por” -->
       <div class="filter-item">
         <label for="group-by">Agrupar por:</label>
         <select id="group-by">
           <option value="Region">Region</option>
-          <option value="State">State</option>
-          <option value="Postal Code">Postal Code</option>
-          <option value="Product ID">Product ID</option>
           <option value="Category">Category</option>
           <option value="Sub-Category">Sub-Category</option>
           <option value="Product Name">Product Name</option>
-          <option value="Customer Name">Customer Name</option>
+          <option value="State">State</option>
+          <option value="Postal Code">Postal Code</option>
+          <option value="Product ID">Product ID</option>
         </select>
       </div>
     </section>
 
-    <!-- 3. GRÁFICO DE LÍNEAS -->
+    <!-- --------------------------------------------
+         3. GRÁFICO DE LÍNEAS: Ventas por Cliente o Ventas diarias
+         -------------------------------------------- -->
     <section class="chart-section">
-      <h2>Ventas 2020 por Cliente (ejemplo)</h2>
-      <canvas id="line-chart"></canvas>
+      <h2 id="line-chart-title">Ventas 2020 por Cliente</h2>
+      <canvas id="line-chart" height="250"></canvas>
     </section>
 
-    <!-- 4. GRÁFICOS INFERIORES -->
+    <!-- --------------------------------------------
+         4. FILA DE GRÁFICOS INFERIORES (Barras + Dispersión)
+         -------------------------------------------- -->
     <section class="bottom-charts">
+      <!-- 4.1 Ventas Totales (Barras) -->
       <div class="chart-card">
-        <h3>Ventas Totales Agrupadas</h3>
-        <canvas id="bar-chart"></canvas>
+        <h3>Ventas Totales</h3>
+        <canvas id="bar-chart" height="200"></canvas>
       </div>
+
+      <!-- 4.2 Utilidad vs Ingresos (Dispersión) -->
       <div class="chart-card">
-        <h3>Utilidad vs Ingresos por Producto (ejemplo)</h3>
-        <canvas id="scatter-chart"></canvas>
+        <h3>Utilidad vs Ingresos por Producto</h3>
+        <canvas id="scatter-chart" height="200"></canvas>
       </div>
     </section>
 
-    <!-- 5. FORMULARIO DE PREDICCIÓN -->
-    <section class="kpi-row" style="margin-top: 2rem;">
-      <div class="kpi-card" style="grid-column: 1 / -1;">
-        <h2 style="color: #fff; margin-bottom: 1rem;">Predicción de Ventas (fila única)</h2>
-        <form id="predict-form" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem;">
-          <div>
+    <!-- --------------------------------------------
+         5. SECCIÓN DE PREDICCIÓN MANUAL DE VENTAS
+         -------------------------------------------- -->
+    <section class="prediction-section">
+      <div class="prediction-card">
+        <h2>🔮 Predicción de Ventas</h2>
+        <form id="prediction-form">
+          <!-- Region -->
+          <div class="form-row">
             <label for="pred-region">🌍 Region</label>
-            <input type="text" id="pred-region" placeholder="Ej. West" />
+            <select id="pred-region">
+              <option value="">Ej. West</option>
+              <!-- Se poblará dinámicamente -->
+            </select>
           </div>
-          <div>
-            <label for="pred-productid">🔢 Product ID</label>
-            <input type="text" id="pred-productid" placeholder="Ej. P-1001" />
+          <!-- Product ID -->
+          <div class="form-row">
+            <label for="pred-product-id">📋 Product ID</label>
+            <select id="pred-product-id">
+              <option value="">Ej. P-1001</option>
+              <!-- Se poblará dinámicamente -->
+            </select>
           </div>
-          <div>
-            <label for="pred-category">🛍 Category</label>
-            <input type="text" id="pred-category" placeholder="Ej. Technology" />
+          <!-- Category -->
+          <div class="form-row">
+            <label for="pred-category">💼 Category</label>
+            <select id="pred-category">
+              <option value="">Ej. Technology</option>
+              <!-- Se poblará dinámicamente -->
+            </select>
           </div>
-          <div>
-            <label for="pred-subcategory">🗂 Sub-Category</label>
-            <input type="text" id="pred-subcategory" placeholder="Ej. Phones" />
+          <!-- Sub-Category -->
+          <div class="form-row">
+            <label for="pred-sub-category">📱 Sub-Category</label>
+            <select id="pred-sub-category">
+              <option value="">Ej. Phones</option>
+              <!-- Se poblará dinámicamente -->
+            </select>
           </div>
-          <div>
-            <label for="pred-product">🏷 Product Name</label>
-            <input type="text" id="pred-product" placeholder="Ej. iPhone 12" />
+          <!-- Product Name -->
+          <div class="form-row">
+            <label for="pred-product-name">📦 Product Name</label>
+            <select id="pred-product-name">
+              <option value="">Ej. iPhone 12</option>
+              <!-- Se poblará dinámicamente -->
+            </select>
           </div>
-          <div>
+          <!-- Order Date -->
+          <div class="form-row">
+            <label for="pred-date">📅 Fecha</label>
+            <input type="date" id="pred-date" />
+          </div>
+          <!-- Quantity -->
+          <div class="form-row">
             <label for="pred-quantity">📦 Quantity</label>
-            <input type="number" id="pred-quantity" placeholder="Ej. 2" />
+            <input
+              type="number"
+              id="pred-quantity"
+              step="1"
+              min="1"
+              placeholder="Ej. 2"
+            />
           </div>
-          <div>
+          <!-- Discount -->
+          <div class="form-row">
             <label for="pred-discount">🎟 Discount</label>
-            <input type="number" id="pred-discount" step="0.01" min="0" max="1" placeholder="Ej. 0.1" />
+            <input
+              type="number"
+              id="pred-discount"
+              step="0.01"
+              min="0"
+              max="1"
+              placeholder="Ej. 0.1"
+            />
           </div>
-          <div>
+          <!-- Profit -->
+          <div class="form-row">
             <label for="pred-profit">💸 Profit</label>
-            <input type="number" id="pred-profit" step="0.01" placeholder="Ej. 200.00" />
+            <input
+              type="number"
+              id="pred-profit"
+              step="0.01"
+              placeholder="Ej. 200.00"
+            />
           </div>
-          <div style="align-self: end;">
-            <button type="submit" class="kpi-card" style="background-color: #198754; color: #fff; cursor: pointer; border: none; border-radius: 8px; padding: 0.8rem;">
-              🔮 Predecir
-            </button>
-          </div>
-          <div id="prediction-result" style="font-size: 1.2rem; font-weight: bold; color: #fff; align-self: end;"></div>
+
+          <!-- Botón Predecir -->
+          <button
+            type="button"
+            class="btn-green"
+            onclick="submitPrediction()"
+          >
+            Predecir
+          </button>
+
+          <!-- Aquí mostraremos el resultado -->
+          <div id="prediction-result" class="prediction-result"></div>
         </form>
       </div>
     </section>
   </main>
 
-  <!-- CARGA DEL JS DEL DASHBOARD -->
+  <!-- --------------------------------------------
+       CARGA DEL JS DEL DASHBOARD
+       -------------------------------------------- -->
   <script src="/static/js/dashboard.js"></script>
 </body>
 </html>
