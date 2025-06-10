@@ -99,7 +99,7 @@ def predict_csv(file: UploadFile = File(...)):
 @app.post("/predict")
 def predict_json(data: list[dict]):
     """
-    Recibe un JSON con lista de objetos, cada uno representando una fila con las columnas esperadas:
+    Recibe un JSON con lista de objetos (una o varias filas) con las columnas esperadas:
       - Region
       - Product ID
       - Category
@@ -144,6 +144,7 @@ def get_kpis(
 
     # 3) Aplicar filtros
     if month:
+        # Filtramos las filas cuyo Order Date esté en ese periodo YYYY-MM
         df = df[df["Order Date"].dt.to_period("M") == pd.Period(month, freq="M")]
     if vendor and vendor != "Todos":
         df = df[df["Customer Name"] == vendor]
@@ -199,6 +200,7 @@ def get_grouped_data(
     if "Order Date" in df.columns:
         df["Order Date"] = pd.to_datetime(df["Order Date"], errors="coerce")
 
+    # FILTROS
     if month:
         df = df[df["Order Date"].dt.to_period("M") == pd.Period(month, freq="M")]
     if vendor and vendor != "Todos":
@@ -241,52 +243,118 @@ def get_grouped_data(
 
 
 # -------------------------------------------------------
-# ENDPOINT: /sales_trend (Ventas mensuales por Cliente para un año dado)
+# ENDPOINT: /sales_trend (Ventas por tiempo, mes o día, según filtros)
 # -------------------------------------------------------
 @app.get("/sales_trend")
 def sales_trend(
     year: int = Query(2020, description="Año para el que se calculan las ventas (p.ej. 2020)"),
+    month: str = Query(None, description="Filtrar por mes (YYYY-MM), opcional."),
     vendor: str = Query("Todos", description="Filtrar por Customer Name.")
 ):
     """
-    Devuelve, para cada mes de `year`, la suma de 'Sales' agrupada por 'Customer Name'.
-    Si `vendor != "Todos"`, solo se consideran filas de ese cliente.
-    Retorna JSON con:
-      {
-        "labels": ["2020-01", ..., "2020-12"],
-        "datasets": [
-          { "vendor": "Ana López",   "values": [12000, ..., 9000] },
-          { "vendor": "Carlos Pérez","values": [ 8000, ..., 3000] },
-          …
-        ]
-      }
+    Devuelve una serie de tiempo de ventas:
+      • Si no hay `month`, agrupamos mes a mes dentro del año indicado:
+        { "labels": ["2020-01", ... , "2020-12"], 
+          "datasets": [
+            { "vendor": "Joe Elijah", "values": [1234, 2345, ... , 3456] },
+            ...
+          ]
+        }
+      • Si se pasa `month="YYYY-MM"`, entonces filtramos ese mes
+        y devolvemos la serie diaria (día 1,2,... hasta fin de mes) para cada cliente:
+        { "labels": ["2020-06-01", "2020-06-02", ..., "2020-06-30"],
+          "datasets": [
+            { "vendor": "Joe Elijah", "values": [123, 234, ... , 456] },
+            ...
+          ]
+        }
     """
+    # 1) Leer el CSV principal
     df = pd.read_csv(str(CSV1), encoding="latin1")
-    df["Order Date"] = pd.to_datetime(df["Order Date"], errors="coerce")
+
+    # 2) Convertir 'Order Date' a datetime
+    if "Order Date" in df.columns:
+        df["Order Date"] = pd.to_datetime(df["Order Date"], errors="coerce")
+    else:
+        raise HTTPException(status_code=500, detail="La columna 'Order Date' no existe en el CSV.")
+
+    # 3) Filtrar por año
     df = df[df["Order Date"].dt.year == year]
-    if vendor and vendor != "Todos":
-        df = df[df["Customer Name"] == vendor]
 
-    if "Sales" not in df.columns or "Customer Name" not in df.columns:
-        raise HTTPException(status_code=500, detail="El CSV no contiene 'Sales' o 'Customer Name'.")
+    # 4) Si se envió un mes específico, filtramos ese mes y agrupamos por día
+    if month:
+        try:
+            # “month” viene en formato "YYYY-MM"
+            periodo = pd.Period(month, freq="M")
+        except:
+            raise HTTPException(status_code=400, detail="Formato de month inválido. Debe ser 'YYYY-MM'.")
+        df = df[df["Order Date"].dt.to_period("M") == periodo]
 
-    df["YearMonth"] = df["Order Date"].dt.to_period("M").astype(str)
-    grouped = df.groupby(["Customer Name", "YearMonth"], dropna=False)["Sales"].sum().reset_index()
+        # 5) Filtrar por cliente si no es "Todos"
+        if vendor and vendor != "Todos":
+            df = df[df["Customer Name"] == vendor]
 
-    pivot = grouped.pivot(index="YearMonth", columns="Customer Name", values="Sales").fillna(0)
-    todos_meses = [f"{year}-{mes:02d}" for mes in range(1, 13)]
-    pivot = pivot.reindex(todos_meses, fill_value=0)
+        # 6) Agrupar por día dentro de ese mes
+        df["Day"] = df["Order Date"].dt.day
+        grouped = df.groupby(["Customer Name", "Day"], dropna=False)["Sales"].sum().reset_index()
 
-    response = {
-        "labels": todos_meses,
-        "datasets": []
-    }
-    for cliente in pivot.columns:
-        valores = pivot[cliente].tolist()
-        response["datasets"].append({
-            "vendor": cliente,
-            "values": [float(v) for v in valores]
-        })
+        # 7) Determinar cuántos días tiene ese mes
+        #    Por ejemplo, junio tiene 30, febrero puede tener 28/29, etc.
+        total_dias = periodo.days_in_month
+        todos_dias = list(range(1, total_dias + 1))
 
-    return response
+        # 8) Pivot para columnas por cliente y filas por día
+        pivot = grouped.pivot(index="Day", columns="Customer Name", values="Sales").fillna(0)
+        pivot = pivot.reindex(todos_dias, fill_value=0)
 
+        # 9) Preparar labels en formato "YYYY-MM-DD"
+        labels = [f"{month}-{dia:02d}" for dia in todos_dias]
+
+        # 10) Construir JSON de salida
+        response = {
+            "labels": labels,
+            "datasets": []
+        }
+        for cliente in pivot.columns:
+            valores = pivot[cliente].tolist()
+            response["datasets"].append({
+                "vendor": cliente,
+                "values": [float(v) for v in valores]
+            })
+        return response
+
+    # — Si no hay month: agrupamos mes a mes dentro de todo el año —
+    else:
+        # 4bis) Si no enviamos mes, solo filtramos por cliente si no es “Todos”
+        if vendor and vendor != "Todos":
+            df = df[df["Customer Name"] == vendor]
+
+        # 5) Verificar que existan las columnas necesarias
+        if "Sales" not in df.columns or "Customer Name" not in df.columns:
+            raise HTTPException(status_code=500, detail="El CSV no contiene 'Sales' o 'Customer Name'.")
+
+        # 6) Crear columna YearMonth en formato "YYYY-MM"
+        df["YearMonth"] = df["Order Date"].dt.to_period("M").astype(str)
+
+        # 7) Agrupar por [Customer Name, YearMonth]
+        grouped = df.groupby(["Customer Name", "YearMonth"], dropna=False)["Sales"].sum().reset_index()
+
+        # 8) Pivot para índices = meses (enero a diciembre) y columnas = cada cliente
+        pivot = grouped.pivot(index="YearMonth", columns="Customer Name", values="Sales").fillna(0)
+
+        # 9) Reindexar para asegurarse de tener todos los meses de 01 a 12
+        todos_meses = [f"{year}-{mes:02d}" for mes in range(1, 13)]
+        pivot = pivot.reindex(todos_meses, fill_value=0)
+
+        # 10) Construir JSON de salida
+        response = {
+            "labels": todos_meses,
+            "datasets": []
+        }
+        for cliente in pivot.columns:
+            valores = pivot[cliente].tolist()
+            response["datasets"].append({
+                "vendor": cliente,
+                "values": [float(v) for v in valores]
+            })
+        return response

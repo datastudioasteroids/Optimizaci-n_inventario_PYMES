@@ -43,58 +43,72 @@ def load_feature_names():
         raise FileNotFoundError(f"No encontré el archivo de features en: {FEATURES_PATH}")
 
 
+def get_target_column_name(df: pd.DataFrame) -> str:
+    """
+    Devuelve el nombre válido de la columna objetivo (ventas) si existe.
+    Lanza un KeyError si no se encuentra ninguna columna válida.
+    """
+    posibles_nombres = [
+        "Sales", "sales", "Ventas", "ventas", "Total_Sales", "total_sales", "Total Ventas", "total ventas",
+        "sale", "ventas_totales", "ventasTotal", "ventas total", "sales_total", "sales amount", "amount_sold",
+        "revenue", "Revenue",
+        "valor_ventas", "valor ventas", "monto_ventas", "monto ventas"
+    ]
+    for nombre in posibles_nombres:
+        if nombre in df.columns:
+            return nombre
+    raise KeyError(f"No se encontró ninguna columna de ventas válida. Nombres esperados: {posibles_nombres}")
+
+
 def predict_from_dataframe(df: pd.DataFrame):
     """
     Genera predicciones para un DataFrame df:
-      1) Elimina 'Sales' si está presente.
-      2) Crea dummies de las columnas categóricas (mismo procedimiento que durante entrenamiento).
-      3) Alinea columnas con las que se usaron para entrenar (cargadas desde feature_names.pkl).
+      1) Elimina columna de ventas si está presente.
+      2) Crea dummies.
+      3) Alinea columnas con las del entrenamiento.
       4) Retorna la lista de predicciones.
     """
-    # 1) Cargar modelo XGBoost
+    # 1) Cargar modelo
     model = load_model()
 
-    # 2) Quitar columna objetivo si viene en el DataFrame
-    X_raw = df.drop(["Sales"], axis=1, errors="ignore")
+    # 2) Detectar y eliminar columna objetivo si está presente
+    try:
+        target_col = get_target_column_name(df)
+        X_raw = df.drop([target_col], axis=1, errors="ignore")
+    except KeyError:
+        X_raw = df.copy()
 
-    # 3) Crear variables dummy (one-hot) exactamente igual que en el entrenamiento
+    # 3) Codificación one-hot
     X_encoded = pd.get_dummies(X_raw, drop_first=True)
 
-    # 4) Cargar lista de features usadas durante el entrenamiento
+    # 4) Alinear columnas
     trained_features = load_feature_names()
-
-    # 5) Reindex para alinear columnas:
-    #    - Crea todas las columnas que faltan con 0
-    #    - Descarta cualquier columna extra
     X_aligned = X_encoded.reindex(columns=trained_features, fill_value=0)
 
-    # 6) Realizar predicción y devolver como lista
+    # 5) Predicción
     preds = model.predict(X_aligned)
     return preds.tolist()
 
-
 def evaluate_model(df: pd.DataFrame):
     """
-    Dado un DataFrame `df` que incluya "Sales", calcula métricas R2, MAE, MSE, RMSE
-    usando el modelo XGBoost precargado.
+    Calcula métricas R2, MAE, MSE, RMSE usando el modelo XGBoost precargado.
     """
-    # 1) Verificar que exista "Sales"
-    if "Sales" not in df.columns:
-        raise KeyError("El DataFrame debe contener la columna 'Sales' para evaluar.")
+    # 1) Detectar columna objetivo
+    target_col = get_target_column_name(df)
 
-    y_true = df["Sales"]
-    X_raw = df.drop(["Sales"], axis=1, errors="ignore")
+    y_true = df[target_col]
+    X_raw = df.drop([target_col], axis=1, errors="ignore")
 
-    # 2) Crear dummies y alinear con los features entrenados
+    # 2) Crear dummies y alinear
     X_encoded = pd.get_dummies(X_raw, drop_first=True)
     trained_features = load_feature_names()
     X_aligned = X_encoded.reindex(columns=trained_features, fill_value=0)
 
-    # 3) Cargar modelo y obtener predicciones
+    # 3) Cargar modelo y predecir
     model = load_model()
     y_pred = model.predict(X_aligned)
 
-    # 4) Calcular métricas
+    # 4) Métricas
     r2   = r2_score(y_true, y_pred)
     mae  = mean_absolute_error(y_true, y_pred)
     mse  = mean_squared_error(y_true, y_pred)
