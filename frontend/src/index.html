@@ -10,6 +10,7 @@
        CARGA DEL CSS DEL DASHBOARD (glassmorphism)
        -------------------------------------------- -->
   <link rel="stylesheet" href="/static/css/dashboard.css" />
+  <link rel="stylesheet" href="/static/css/styles.css" />
 
   <!-- --------------------------------------------
        CARGA DE Chart.js DESDE CDN
@@ -31,9 +32,19 @@
   </header>
 
   <!-- ======================
-       CONTENEDOR PRINCIPAL
+       UPLOADER CSV
        ====================== -->
-  <main>
+  <section id="uploader" class="uploader-section">
+    <h2>1. Carga tu CSV de Entrenamiento</h2>
+    <input type="file" id="csvFileInput" accept=".csv" />
+    <button id="uploadBtn" disabled>Subir CSV</button>
+    <p id="uploadStatus"></p>
+  </section>
+
+  <!-- ======================
+       CONTENEDOR PRINCIPAL (OCULTO HASTA UPLOAD)
+       ====================== -->
+  <main id="actions" style="display: none;">
     <!-- --------------------------------------------
          1. FILA DE KPIs (Ventas Totales, Utilidad, etc.)
          -------------------------------------------- -->
@@ -71,7 +82,6 @@
         <label for="vendor-select">Cliente (Customer Name):</label>
         <select id="vendor-select">
           <option value="Todos">Todos</option>
-          <!-- Se poblará por JS -->
         </select>
       </div>
 
@@ -80,7 +90,6 @@
         <label for="product-select">Producto (Product Name):</label>
         <select id="product-select">
           <option value="Todos">Todos</option>
-          <!-- Se poblará por JS -->
         </select>
       </div>
 
@@ -134,42 +143,27 @@
           <!-- Region -->
           <div class="form-row">
             <label for="pred-region">🌍 Region</label>
-            <select id="pred-region">
-              <option value="">Ej. West</option>
-              <!-- Se poblará dinámicamente -->
-            </select>
+            <select id="pred-region"><option value="">Ej. West</option></select>
           </div>
           <!-- Product ID -->
           <div class="form-row">
             <label for="pred-product-id">📋 Product ID</label>
-            <select id="pred-product-id">
-              <option value="">Ej. P-1001</option>
-              <!-- Se poblará dinámicamente -->
-            </select>
+            <select id="pred-product-id"><option value="">Ej. P-1001</option></select>
           </div>
           <!-- Category -->
           <div class="form-row">
             <label for="pred-category">💼 Category</label>
-            <select id="pred-category">
-              <option value="">Ej. Technology</option>
-              <!-- Se poblará dinámicamente -->
-            </select>
+            <select id="pred-category"><option value="">Ej. Technology</option></select>
           </div>
           <!-- Sub-Category -->
           <div class="form-row">
             <label for="pred-sub-category">📱 Sub-Category</label>
-            <select id="pred-sub-category">
-              <option value="">Ej. Phones</option>
-              <!-- Se poblará dinámicamente -->
-            </select>
+            <select id="pred-sub-category"><option value="">Ej. Phones</option></select>
           </div>
           <!-- Product Name -->
           <div class="form-row">
             <label for="pred-product-name">📦 Product Name</label>
-            <select id="pred-product-name">
-              <option value="">Ej. iPhone 12</option>
-              <!-- Se poblará dinámicamente -->
-            </select>
+            <select id="pred-product-name"><option value="">Ej. iPhone 12</option></select>
           </div>
           <!-- Order Date -->
           <div class="form-row">
@@ -179,47 +173,25 @@
           <!-- Quantity -->
           <div class="form-row">
             <label for="pred-quantity">📦 Quantity</label>
-            <input
-              type="number"
-              id="pred-quantity"
-              step="1"
-              min="1"
-              placeholder="Ej. 2"
-            />
+            <input type="number" id="pred-quantity" step="1" min="1" placeholder="Ej. 2" />
           </div>
           <!-- Discount -->
           <div class="form-row">
             <label for="pred-discount">🎟 Discount</label>
-            <input
-              type="number"
-              id="pred-discount"
-              step="0.01"
-              min="0"
-              max="1"
-              placeholder="Ej. 0.1"
-            />
+            <input type="number" id="pred-discount" step="0.01" min="0" max="1" placeholder="Ej. 0.1" />
           </div>
           <!-- Profit -->
           <div class="form-row">
             <label for="pred-profit">💸 Profit</label>
-            <input
-              type="number"
-              id="pred-profit"
-              step="0.01"
-              placeholder="Ej. 200.00"
-            />
+            <input type="number" id="pred-profit" step="0.01" placeholder="Ej. 200.00" />
           </div>
 
           <!-- Botón Predecir -->
-          <button
-            type="button"
-            class="btn-green"
-            onclick="submitPrediction()"
-          >
+          <button type="button" class="btn-green" onclick="submitPrediction()">
             Predecir
           </button>
 
-          <!-- Aquí mostraremos el resultado -->
+          <!-- Resultado -->
           <div id="prediction-result" class="prediction-result"></div>
         </form>
       </div>
@@ -227,8 +199,11 @@
   </main>
 
   <!-- --------------------------------------------
-       CARGA DEL JS DEL DASHBOARD
+       CARGA DEL JS DEL FRONTEND
        -------------------------------------------- -->
+  <script src="/static/js/upload.js"></script>
+  <script src="/static/js/metrics.js"></script>
   <script src="/static/js/dashboard.js"></script>
+  <script src="/static/js/app.js"></script>
 </body>
 </html>
