@@ -1,22 +1,29 @@
 # render.yaml
+#
+# Despliega tu API de FastAPI (con frontend estático servido por la misma app)
+# a partir de la carpeta `backend/` donde está main.py.
 
 services:
-  # -----------------------------
-  # Servicio web para FastAPI
-  # -----------------------------
   - type: web
-    name: sales-forecast-api
+    name: sales-forecasting-api
     env: python
-    plan: free       # o cambiar a hobby/standard según tu plan
-    branch: main     # rama de Git desde la que desplegar
-    workingDirectory: backend
-    buildCommand: pip install -r requirements.txt
-    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
-    envVars:
-      # Render inyecta automáticamente PORT, pero por si lo necesitas:
-      - key: PORT
-        value: "10000"
-    healthCheckPath: "/"    # verifica que index.html se sirva correctamente
+    plan: free
+    branch: main
 
-# Si en el futuro quieres un sitio estático separado para el front,
-# podrías añadir otro servicio tipo static_site apuntando a frontend/src.
+    # Instalamos deps desde el requirements.txt en backend/
+    buildCommand: pip install -r backend/requirements.txt
+
+    # Arrancamos Uvicorn apuntando a backend/main.py
+    startCommand: uvicorn backend.main:app --host 0.0.0.0 --port $PORT
+
+    # Health check para validar que "/" devuelve tu index.html
+    healthCheckPath: /
+
+# (Opcional) Si quisieras servir frontend como sitio estático por separado:
+#  - type: static
+#    name: sales-forecasting-frontend
+#    branch: main
+#    staticPublishPath: frontend/src
+#    env:
+#      - key: RENDER_REDIRECT_ROOT
+#        value: "true"
