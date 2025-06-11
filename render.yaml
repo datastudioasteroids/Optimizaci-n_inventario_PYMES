@@ -1,36 +1,28 @@
 # render.yaml
-
 services:
-  # 1) Servicio Python: FastAPI (backend/)
+  # 1) API FastAPI en backend/
   - type: web
     name: optimizacion-inventario-api
-    env: python
+    env: python             # ← fuerza uso de Python, ignora package.json en frontend
     plan: free
     branch: main
     workingDirectory: backend
 
-    # instala sólo deps Python (uvicorn incluido en requirements.txt)
     buildCommand: |
       pip install --upgrade pip
       pip install -r requirements.txt
 
-    # arranca uvicorn desde backend/main.py
     startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
 
     healthCheckPath: /
 
-  # 2) Servicio estático: tu front (frontend/)
+  # 2) Frontend estático desde frontend/src
   - type: static
     name: optimizacion-inventario-frontend
     branch: main
 
-    # publica los archivos estáticos desde frontend/src
     staticPublishPath: frontend/src
-
-    # No necesita build (evita que Render busque package.json en root)
     buildCommand: echo "No build needed"
-
-    # Redirige 404 a index.html para SPAs
     envVars:
       - key: RENDER_REDIRECT_ROOT
         value: "true"
