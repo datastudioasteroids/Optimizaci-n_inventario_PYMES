@@ -1,0 +1,22 @@
+# render.yaml
+
+services:
+  # -----------------------------
+  # Servicio web para FastAPI
+  # -----------------------------
+  - type: web
+    name: sales-forecast-api
+    env: python
+    plan: free       # o cambiar a hobby/standard según tu plan
+    branch: main     # rama de Git desde la que desplegar
+    workingDirectory: backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      # Render inyecta automáticamente PORT, pero por si lo necesitas:
+      - key: PORT
+        value: "10000"
+    healthCheckPath: "/"    # verifica que index.html se sirva correctamente
+
+# Si en el futuro quieres un sitio estático separado para el front,
+# podrías añadir otro servicio tipo static_site apuntando a frontend/src.
