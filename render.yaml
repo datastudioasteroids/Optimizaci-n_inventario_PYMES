@@ -1,9 +1,9 @@
 # render.yaml
 services:
-  # 1) API FastAPI en backend/
+  # 1) API FastAPI (backend/)
   - type: web
     name: optimizacion-inventario-api
-    env: python             # ← fuerza uso de Python, ignora package.json en frontend
+    env: python
     plan: free
     branch: main
     workingDirectory: backend
@@ -13,10 +13,9 @@ services:
       pip install -r requirements.txt
 
     startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
-
     healthCheckPath: /
 
-  # 2) Frontend estático desde frontend/src
+  # 2) Frontend estático (frontend/)
   - type: static
     name: optimizacion-inventario-frontend
     branch: main
@@ -26,3 +25,4 @@ services:
     envVars:
       - key: RENDER_REDIRECT_ROOT
         value: "true"
+
