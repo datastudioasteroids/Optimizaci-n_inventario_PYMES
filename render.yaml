@@ -1,29 +1,16 @@
 # render.yaml
-#
-# Despliega tu API de FastAPI (con frontend estático servido por la misma app)
-# a partir de la carpeta `backend/` donde está main.py.
-
 services:
   - type: web
-    name: sales-forecasting-api
+    name: optimizacion-inventario-api
     env: python
     plan: free
     branch: main
 
-    # Instalamos deps desde el requirements.txt en backend/
-    buildCommand: pip install -r backend/requirements.txt
+    # Antes de todo: instalamos dependencias Python
+    buildCommand: pip install --upgrade pip && pip install -r backend/requirements.txt
 
-    # Arrancamos Uvicorn apuntando a backend/main.py
+    # Arrancamos uvicorn apuntando a tu main.py dentro de backend/
     startCommand: uvicorn backend.main:app --host 0.0.0.0 --port $PORT
 
-    # Health check para validar que "/" devuelve tu index.html
+    # Comprueba que "/" sirva tu index.html
     healthCheckPath: /
-
-# (Opcional) Si quisieras servir frontend como sitio estático por separado:
-#  - type: static
-#    name: sales-forecasting-frontend
-#    branch: main
-#    staticPublishPath: frontend/src
-#    env:
-#      - key: RENDER_REDIRECT_ROOT
-#        value: "true"
