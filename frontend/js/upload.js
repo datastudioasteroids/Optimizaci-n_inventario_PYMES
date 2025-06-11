@@ -1,50 +1,52 @@
-// upload.js: gestiona la subida del CSV y muestra las predicciones.
+// upload.js
+// ===============================
+// Módulo para manejar la subida del CSV de entrenamiento.
+// Tras un upload exitoso, muestra el dashboard y arranca initDashboard().
+// Cargar ESTE script antes de dashboard.js.
 
+// Esperamos al DOM para vincular eventos
 document.addEventListener('DOMContentLoaded', () => {
-  const form = document.getElementById('upload-form');
-  const fileInput = document.getElementById('file-input');
-  const errorDiv = document.getElementById('upload-error');
-  const resultsBody = document.getElementById('results-body');
+  const fileInput = document.getElementById('csvFileInput');
+  const uploadBtn = document.getElementById('uploadBtn');
+  const statusP = document.getElementById('uploadStatus');
+  const actions = document.getElementById('actions');
 
-  form.addEventListener('submit', (e) => {
-    e.preventDefault();
-    errorDiv.textContent = '';
-    resultsBody.innerHTML = '';
+  // Cuando el usuario seleccione un archivo, habilitamos el botón
+  fileInput.addEventListener('change', () => {
+    uploadBtn.disabled = fileInput.files.length === 0;
+    statusP.textContent = ''; // Limpiar mensaje previo
+  });
 
+  // Al hacer click en "Subir CSV"
+  uploadBtn.addEventListener('click', async () => {
+    if (!fileInput.files.length) return;
     const file = fileInput.files[0];
-    if (!file) {
-      errorDiv.textContent = 'Por favor selecciona un archivo CSV.';
-      return;
-    }
-
     const formData = new FormData();
     formData.append('file', file);
 
-    fetch('http://localhost:8000/predict_csv', {
-      method: 'POST',
-      body: formData
-    })
-      .then(response => response.json())
-      .then(data => {
-        const predictions = data.predictions;
-        if (!predictions || predictions.length === 0) {
-          errorDiv.textContent = 'No se recibieron predicciones.';
-          return;
-        }
-        predictions.forEach((pred, idx) => {
-          const tr = document.createElement('tr');
-          const tdIdx = document.createElement('td');
-          tdIdx.textContent = idx + 1;
-          const tdPred = document.createElement('td');
-          tdPred.textContent = pred.toFixed(2);
-          tr.appendChild(tdIdx);
-          tr.appendChild(tdPred);
-          resultsBody.appendChild(tr);
-        });
-      })
-      .catch(err => {
-        errorDiv.textContent = 'Error al procesar la predicción.';
-        console.error(err);
+    statusP.textContent = 'Subiendo CSV...';
+    uploadBtn.disabled = true;
+
+    try {
+      const res = await fetch('/upload_csv', {
+        method: 'POST',
+        body: formData,
       });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.detail || res.statusText);
+
+      statusP.textContent = data.detail;
+
+      // Mostrar dashboard y arrancar carga de datos
+      actions.style.display = 'block';
+      if (window.initDashboard) {
+        window.initDashboard();
+      }
+    } catch (err) {
+      console.error('Error al subir CSV:', err);
+      statusP.textContent = 'Error: ' + err.message;
+    } finally {
+      uploadBtn.disabled = false;
+    }
   });
 });
