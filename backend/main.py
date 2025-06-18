@@ -10,12 +10,16 @@ from fastapi.responses import JSONResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 
+# Al principio de main.py, justo tras los imports estándar:
+import nltk
+
 # Asegúrate de que Python encuentre tu paquete backend
 BASE_DIR = Path(__file__).parent
 sys.path.insert(0, str(BASE_DIR))
 
 from ml_utils import normalize_columns
 from train_xgb import train_and_save
+
 
 # -------------------------------------------------------
 # Configuración general
@@ -52,13 +56,27 @@ def serve_index():
     return FileResponse(str(idx))
 
 
+# Al principio de main.py, justo tras los imports estándar:
+import nltk
+
 # -------------------------------------------------------
-# Startup: cargar pipelines si existen
+# Startup: descargar datos de NLTK y cargar pipelines
 # -------------------------------------------------------
 @app.on_event("startup")
-def load_pipelines():
-    global pipe_q, pipe_p
+def startup():
+    # 1) Descarga silenciosa de WordNet y Open Multilingual Wordnet
+    try:
+        nltk.data.find('corpora/wordnet')
+    except LookupError:
+        nltk.download('wordnet')
+    try:
+        nltk.data.find('corpora/omw-1.4')
+    except LookupError:
+        nltk.download('omw-1.4')
+
+    # 2) Ahora cargamos los pipelines si existen
     MODELS_DIR.mkdir(exist_ok=True)
+    global pipe_q, pipe_p
     if PIPE_QTY.exists() and PIPE_PROF.exists():
         pipe_q = joblib.load(PIPE_QTY)
         pipe_p = joblib.load(PIPE_PROF)
