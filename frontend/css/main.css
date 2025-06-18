@@ -1,0 +1,229 @@
+/* =================================================================
+   main.css – Unificado: fondo espacial, glassmorphism y formularios
+   ================================================================= */
+
+/* —— Reset global —— */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* —— Body & Fondo Estelar —— */
+body {
+  font-family: 'Poppins', sans-serif;
+
+  /* sustituye la imagen anterior por tu nueva space_bg.png */
+  background: #0a0f2d;  /* tu color de fondo */
+
+  /* si quieres ajustar la posición:
+     background-position: center top;
+     background-size: cover; (o: contain;)
+  */
+
+  color: #eee;
+  min-height: 100vh;
+  position: relative;
+}
+
+/* overlay oscuro para mejorar contraste */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  pointer-events: none;
+  z-index: -1;
+}
+
+/* —— Header Neon —— */
+header {
+  text-align: center;
+  padding: 2rem 1rem;
+}
+header img {
+  width: 80px;
+  filter: drop-shadow(0 0 8px #0ff);
+}
+header h1 {
+  margin-top: .5rem;
+  font-size: 2.5rem;
+  color: #0ff;
+  text-shadow:
+    0 0 8px #0ff,
+    0 0 16px #08d;
+}
+
+/* —— Clase Panel (Glassmorphism) —— */
+.panel {
+  background: rgba(255,255,255,0.05);
+  backdrop-filter: blur(8px);
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+  padding: 2rem;
+  margin: 2rem auto;
+  max-width: 800px;
+  color: #fff;
+}
+
+/* —— Uploader Section —— */
+.uploader-section {
+  text-align: center;
+}
+.uploader-section h2 {
+  margin-bottom: 1rem;
+  font-size: 1.4rem;
+}
+
+/* —— Inputs, Selects, Botones —— */
+input, select, button {
+  font-family: inherit;
+  border: none;
+  border-radius: 6px;
+  padding: .6rem 1rem;
+  font-size: 1rem;
+  transition: all .15s ease-in-out;
+}
+input, select {
+  background: rgba(255,255,255,0.1);
+  color: #fff;
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.6);
+}
+input::placeholder { color: #ddd; }
+button {
+  background: linear-gradient(145deg, #00ffea, #0077ff);
+  color: #000;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+}
+button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0,0,0,0.7);
+}
+button:disabled {
+  background: rgba(255,255,255,0.2);
+  color: #777;
+  cursor: default;
+}
+
+/* —— Fila de Selectores —— */
+.filter-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+.filter-item {
+  flex: 1 1 200px;
+  display: flex;
+  flex-direction: column;
+}
+.filter-item label {
+  margin-bottom: .3rem;
+  color: #ddd;
+  font-size: .9rem;
+}
+
+/* —— KPIs (si las recuperas) —— */
+.kpi-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px,1fr));
+  gap: 1rem;
+}
+.kpi-card {
+  background: rgba(255,255,255,0.05);
+  padding: 1rem;
+  border-radius: 12px;
+  text-align: center;
+  backdrop-filter: blur(6px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+}
+.kpi-title { color: #bbb; font-size: .9rem; }
+.kpi-value { font-size: 1.8rem; font-weight: 600; margin-top: .3rem; }
+
+/* —— Predicción de Ventas —— */
+.prediction-section {
+  margin-top: 2rem;
+}
+.prediction-card h2 {
+  text-align: center;
+  color: #0ff;
+  font-size: 1.5rem;
+  margin-bottom: 1rem;
+  text-shadow: 0 0 4px #0ff, 0 0 8px #08d;
+}
+.prediction-card .form-row {
+  margin-bottom: 1rem;
+  display: flex;
+  flex-direction: column;
+}
+.prediction-card .form-row label {
+  margin-bottom: .4rem;
+  color: #ddd;
+}
+.prediction-card .form-row input,
+.prediction-card .form-row select {
+  background: rgba(255,255,255,0.1);
+  color: #fff;
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.6);
+}
+.btn-green {
+  width: 100%;
+  margin-top: .5rem;
+}
+.prediction-result {
+  margin-top: 1rem;
+  text-align: center;
+  font-size: 1.1rem;
+}
+.prediction-error {
+  margin-top: .5rem;
+  color: #ff4d4d;
+  text-align: center;
+}
+
+/* —— Tablas (opcional) —— */
+#results-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1rem;
+}
+#results-table th,
+#results-table td {
+  border: 1px solid rgba(255,255,255,0.2);
+  padding: .5rem;
+  text-align: center;
+}
+#results-table th {
+  background: rgba(255,255,255,0.1);
+}
+
+/* ==============================
+   Override dropdown text color
+   ============================== */
+select {
+  color: #000 !important;
+  background-color: #fff !important;
+}
+
+/* Asegura que cada <option> también sea negro */
+select option {
+  color: #000 !important;
+  background-color: #fff !important;
+}
+
+/* En algunos navegadores de Windows */
+select::-ms-expand {
+  color: #000 !important;
+}
+
+/* Para el placeholder del <input type="month"> (si lo usas) */
+input[type="month"] {
+  color: #000 !important;
+  background-color: #fff !important;
+}
+input[type="month"]::-webkit-datetime-edit-text,
+input[type="month"]::-webkit-datetime-edit-month-field,
+input[type="month"]::-webkit-datetime-edit-year-field {
+  color: #000 !important;
+}

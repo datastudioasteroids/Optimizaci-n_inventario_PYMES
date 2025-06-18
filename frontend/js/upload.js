@@ -1,59 +1,48 @@
-// upload.js
-// ===============================
-// Módulo para manejar la subida del CSV de entrenamiento.
-// Tras un upload exitoso, muestra el dashboard y arranca initDashboard()
-// y también initPredictionByFields() para poblar los menús de predicción.
+// static/js/upload.js
 
-// Esperamos al DOM para vincular eventos
-document.addEventListener('DOMContentLoaded', () => {
-  const fileInput = document.getElementById('csvFileInput');
-  const uploadBtn = document.getElementById('uploadBtn');
-  const statusP   = document.getElementById('uploadStatus');
-  const actions   = document.getElementById('actions');
+const uploadBtn = document.getElementById("uploadBtn");
+const fileInput = document.getElementById("csvFileInput");
+const status    = document.getElementById("uploadStatus");
+const actions   = document.getElementById("actions");
 
-  // Cuando el usuario seleccione un archivo, habilitamos el botón
-  fileInput.addEventListener('change', () => {
-    uploadBtn.disabled   = fileInput.files.length === 0;
-    statusP.textContent  = ''; // Limpiar mensaje previo
-  });
+// Solo habilitamos el botón si hay archivo seleccionado
+fileInput.addEventListener("change", () => {
+  uploadBtn.disabled = !fileInput.files.length;
+});
 
-  // Al hacer click en "Subir CSV"
-  uploadBtn.addEventListener('click', async () => {
-    if (!fileInput.files.length) return;
-    const file = fileInput.files[0];
-    const formData = new FormData();
-    formData.append('file', file);
+uploadBtn.addEventListener("click", async () => {
+  if (!fileInput.files.length) return;
+  status.textContent = "Subiendo CSV…";
+  const form = new FormData();
+  form.append("file", fileInput.files[0]);
 
-    statusP.textContent  = 'Subiendo CSV...';
-    uploadBtn.disabled   = true;
-
-    try {
-      const res  = await fetch('/upload_csv', {
-        method: 'POST',
-        body: formData,
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.detail || res.statusText);
-
-      // Mensaje de éxito
-      statusP.textContent = data.detail;
-
-      // Mostrar dashboard
-      actions.style.display = 'block';
-
-      // Inicializar dashboard existente
-      if (window.initDashboard) {
-        window.initDashboard();
-      }
-      // Y ahora poblar los menús de predicción
-      if (window.initPredictionByFields) {
-        window.initPredictionByFields();
-      }
-    } catch (err) {
-      console.error('Error al subir CSV:', err);
-      statusP.textContent = 'Error: ' + err.message;
-    } finally {
-      uploadBtn.disabled = false;
+  try {
+    // 1) Llamar a upload_csv
+    let resp = await fetch("/upload_csv", {
+      method: "POST",
+      body: form
+    });
+    if (!resp.ok) {
+      throw new Error(`upload_csv: ${resp.status}`);
     }
-  });
+    status.textContent = "CSV subido. Entrenando modelos…";
+
+    // 2) Llamar a train_xgb
+    resp = await fetch("/train_xgb", { method: "POST" });
+    if (!resp.ok) {
+      const err = await resp.json().catch(() => ({}));
+      throw new Error(err.detail || `train_xgb: ${resp.status}`);
+    }
+
+    // 3) Indicar éxito y mostrar el dashboard
+    status.innerHTML = "✅ Modelos entrenados.";
+    actions.style.display = "";
+
+    // 4) Disparar evento para que app.js/HTML reaccionen
+    document.dispatchEvent(new Event("modelsTrained"));
+
+  } catch (err) {
+    console.error("Error en upload.js:", err);
+    status.textContent = `❌ ${err.message}`;
+  }
 });

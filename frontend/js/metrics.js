@@ -1,38 +1,38 @@
-// metrics.js
-// ------------------------------
-// Solicita métricas (_metrics_xgb_) al backend
-// y actualiza los KPI cards en pantalla.
-// Debe importarse después de upload.js y app.js.
-// ------------------------------
+// static/js/metrics.js
+document.addEventListener('DOMContentLoaded', () => {
+  const monthInput  = document.getElementById('month-range');
+  const vendorSel   = document.getElementById('vendor-select');
+  const productSel  = document.getElementById('product-select');
 
-/**
- * Hace fetch a /metrics_xgb y pinta los KPIs:
- *  - total_sales
- *  - avg_profit_pct
- *  - sale_count
- *  - avg_sales
- */
-async function fetchAndRenderMetrics() {
-  try {
-    const res = await fetch('/metrics_xgb');
-    if (!res.ok) {
-      const err = await res.json();
-      throw new Error(err.detail || res.statusText);
+  async function updateKPIs() {
+    const month  = monthInput.value || null;
+    const vendor = vendorSel.value;
+    const product= productSel.value;
+
+    const params = new URLSearchParams();
+    if (month)  params.set('month', month);
+    if (vendor && vendor !== 'Todos')  params.set('vendor', vendor);
+    if (product && product !== 'Todos') params.set('product', product);
+
+    try {
+      const resp = await fetch(`/kpis?${params.toString()}`);
+      if (!resp.ok) throw new Error(`Status ${resp.status}`);
+      const { total_sales, avg_profit_pct, sale_count, avg_sales } = await resp.json();
+
+      document.getElementById('kpi-total-sales').textContent = total_sales.toFixed(2);
+      document.getElementById('kpi-avg-profit').textContent  = (avg_profit_pct * 100).toFixed(1) + '%';
+      document.getElementById('kpi-sale-count').textContent = sale_count;
+      document.getElementById('kpi-avg-sales').textContent = avg_sales.toFixed(2);
+    } catch (err) {
+      console.error('Error al actualizar KPIs:', err);
     }
-    const { metrics } = await res.json();
-
-    // Actualizo los KPI cards
-    document.getElementById('kpi-total-sales').innerText = metrics.total_sales.toFixed(2);
-    document.getElementById('kpi-avg-profit').innerText   = (metrics.avg_profit_pct * 100).toFixed(2) + '%';
-    document.getElementById('kpi-sale-count').innerText   = metrics.sale_count;
-    document.getElementById('kpi-avg-sales').innerText    = metrics.avg_sales.toFixed(2);
-  } catch (err) {
-    // Si hay un error (p.ej. no subió CSV) lo muestro en el status
-    const statusEl = document.getElementById('uploadStatus');
-    statusEl.innerText = 'Error cargando métricas: ' + err.message;
-    console.error(err);
   }
-}
 
-// Al hacer click en el botón, lanzamos la petición
-document.getElementById('metricsBtn').addEventListener('click', fetchAndRenderMetrics);
+  // Dispara cuando cambian los filtros
+  monthInput.addEventListener('change',  updateKPIs);
+  vendorSel.addEventListener('change',  updateKPIs);
+  productSel.addEventListener('change', updateKPIs);
+
+  // Llamada inicial
+  updateKPIs();
+});
